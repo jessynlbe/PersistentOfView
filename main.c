@@ -7,7 +7,7 @@
 
 void main(void){
     DDRD |= _BV(PD6);
-    DDRD |= _BV(PD2);
+    DDRD &= ~_BV(PD2);
     DDRB |= _BV(PB5);
     DDRB |= _BV(PB3);
     DDRC |= _BV(PC1);
@@ -17,11 +17,11 @@ void main(void){
         int idx = 0;
         while(idx < 16){
 
-            if(PORTD & _BV(PD2)){
-                PORTB |= _BV(PB3);
+            if(PIND & _BV(PD2)){
+                PORTB &= ~_BV(PB3);
             }
             else{
-                PORTB &= ~_BV(PB3);
+                PORTB |= _BV(PB3);
             }
 
             PORTB |= _BV(PB5);
