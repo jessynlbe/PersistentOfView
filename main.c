@@ -6,10 +6,24 @@
 
 void main(void){
     DDRD |= _BV(PD6);
-    while(1){
-        PORTD |= _BV(PD6);
-        _delay_ms(1000);
-        PORTD &= ~_BV(PD6);
-        _delay_ms(1000);
+    DDRB |= _BV(PB5);
+
+    DDRC |= _BV(PC1);
+
+    int idx = 0;
+    while(idx < 16){
+        
+        PORTB |= _BV(PB3);
+        PORTB |= _BV(PB5);
+        PORTB &= ~_BV(PB3);
+        PORTB &= ~_BV(PB5);
+        idx += 1;
+
     }
+
+    PORTC |= _BV(PC2);
+    PORTC &= ~_BV(PC1);
+    
+    PORTD |= _BV(PD6);
+
 }
