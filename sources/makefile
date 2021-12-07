@@ -6,11 +6,14 @@ MCU=m328p
 led.o: led.c
 	${CC} ${CFLAGS} -c -o led.o led.c
 
+usart.o: usart.c
+	${CC} ${CFLAGS} -c -o usart.o usart.c
+
 magnetic.o: magnetic.c
 	${CC} ${CFLAGS} -c -o magnetic.o magnetic.c
 
-main.out: main.c magnetic.o led.o
-	${CC} ${CFLAGS} -o main.out main.c magnetic.o led.o
+main.out: main.c magnetic.o led.o usart.o
+	${CC} ${CFLAGS} -o main.out main.c magnetic.o usart.o led.o
 
 main.bin: main.out
 		${OBJCOPY} -O binary main.out main.bin
