@@ -4,9 +4,6 @@
 #include <avr/interrupt.h>
 #include <util/delay.h>
 
-volatile int led_on;
+volatile int second_compteur;
 
-void init_leds();
-void turn_on_leds();
-void turn_off_leds();
-void toggle_leds();
+void init_timer2();
