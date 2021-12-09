@@ -1,12 +1,12 @@
 #include "../headers/magnetic.h"
-#include "../headers/led.h"
+#include "../headers/spi.h"
 
 ISR(INT0_vect){
     if(!(PIND & _BV(PD2))){ // HIGH and LOW are inverted because of pull-up
-            turn_on_leds();
+            spi_transmit( (uint8_t) 255, (uint8_t) 255);
         }
         else{
-            turn_off_leds();
+            spi_transmit( (uint8_t) 0, (uint8_t) 0);
     }
 }
 

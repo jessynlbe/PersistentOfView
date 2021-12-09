@@ -1,5 +1,5 @@
 #include "../headers/timer.h"
-#include "../headers/led.h"
+#include "../headers/spi.h"
 
 void init_timer2(){
     // All bits of TCCR = 0
