@@ -6,12 +6,14 @@
 #include <stdbool.h>
 #include <string.h>
 
+#define SIZE 500
+
 typedef struct ringBuffer ringBuffer;
 
 struct ringBuffer {
     int read_pos;
     int write_pos;
-    uint8_t buffer[128];
+    uint8_t buffer[SIZE];
 };
 
 ringBuffer tx_rbuffer;
