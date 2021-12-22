@@ -26,6 +26,7 @@ void main(void){
     usart_send_string("r : Read rx_buffer\n");
     usart_send_string("t : Read rx_buffer\n");
     usart_send_string("h : Write the time in the form hh:mm validate then enter h\n");
+    _delay_ms(10);
     while (1){
         char char_received = usart_read();
         if(char_received == 'r')
@@ -40,20 +41,30 @@ void main(void){
 
             char h1 = rx_rbuffer.buffer[start-7];
             char h2 = rx_rbuffer.buffer[start-6];
-
+            char h3 = rx_rbuffer.buffer[start-4];
+            char h4 = rx_rbuffer.buffer[start-3];
             
             char hours_tab[3] = {h1,h2,'\0'};
-            hours = atoi(hours_tab) % 12;
+            char min_tab[3] = {h3, h4 , '\0'};
 
-            h1 = rx_rbuffer.buffer[start-4];
-            h2 = rx_rbuffer.buffer[start-3];
+            if(mode == 0){
+                hours = atoi(hours_tab)%12;
+                minutes = atoi(min_tab);
+                seconds = (3600 * hours) + (60*minutes);// Reset the seconds counter to zero
+            }
+            else if(mode == 1){
+                hours = atoi(hours_tab);
+                minutes = atoi(min_tab);
+                seconds = (3600 * hours) + (60*minutes);
+                initDigitalClock();
+            }
 
-            char min_tab[3] = {h1, h2 , '\0'};
-            minutes = atoi(min_tab);
-
-            seconds = 0; // Reset the seconds counter to zero
             TCNT1 = 0; // Reset the rpm counter (timer 1)
             TCNT2 = 0; // Reset the seconds counter (timer 2)
+        }
+        else if(char_received == 'm'){
+            char m[2]= {rx_rbuffer.buffer[rx_rbuffer.read_pos - 4] , '\0'};
+            mode = atoi(m);
 
         }
     }

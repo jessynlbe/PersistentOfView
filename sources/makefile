@@ -7,7 +7,7 @@ spi.o: spi.c
 	${CC} ${CFLAGS} -c -o spi.o spi.c
 
 timer.o: timer.c
-	${CC} ${CFLAGS} -c -o timer.o timer.c
+	${CC} ${CFLAGS} -c -o timer.o timer.c -lm
 
 usart.o: usart.c
 	${CC} ${CFLAGS} -c -o usart.o usart.c
@@ -16,7 +16,7 @@ magnetic.o: magnetic.c
 	${CC} ${CFLAGS} -c -o magnetic.o magnetic.c
 
 main.out: main.c magnetic.o usart.o timer.o spi.o
-	${CC} ${CFLAGS} -o main.out main.c magnetic.o usart.o timer.o spi.o
+	${CC} ${CFLAGS} -o main.out main.c magnetic.o usart.o timer.o spi.o -lm
 
 main.bin: main.out
 		${OBJCOPY} -O binary main.out main.bin

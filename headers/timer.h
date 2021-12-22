@@ -4,27 +4,37 @@
 #include <avr/interrupt.h>
 #include <util/delay.h>
 
-#define MAX 120
+#define MAX 180
+#define SIZETAB 6
 
 volatile int second_compteur;
-volatile int seconds;
+volatile long seconds;
 volatile int ticks;
-volatile int minutes;
+volatile long minutes;
 volatile int rpm;
 volatile int column;
-volatile int hours;
+volatile long hours;
+volatile int mode;
 
 volatile int mult_minutes;
 volatile int mod_five_minutes;
 volatile int mod_fifteen_minutes;
 
-volatile int nb_seconds;
+volatile int *time_tab[5];
+volatile long stored_min ;
+volatile long stored_hour;
 
 
 void init_timer2();
 void init_timer1();
 void init_timer();
-void display(int val);
+void display(long val);
 void increment_column();
-int getMin();
-int getHour();
+long getMin();
+long getHour();
+
+int* linkTabAndNumber(int val);
+void displayMsg(int start , int size , int column , int nbTab , int sizeSep , int nbSections ,volatile int **tab);
+void updateTimeTab(int val , int pos ,volatile int **tab);
+void initDigitalClock();
+void updateTime();
