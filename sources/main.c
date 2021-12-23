@@ -1,18 +1,19 @@
+
 #include <avr/io.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <avr/interrupt.h>
 #include <util/delay.h>
+#include <string.h>
+#include <assert.h>
+#include <stdlib.h>
 
 #include "../headers/magnetic.h"
 #include "../headers/usart.h"
 #include "../headers/timer.h"
 #include "../headers/spi.h"
-#include <string.h>
-	
-#include <assert.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include "../headers/bits.h"
+#include "../headers/numbers.h"
 
 
 void main(void){
@@ -48,7 +49,7 @@ void main(void){
             char min_tab[3] = {h3, h4 , '\0'};
 
             if(mode == 0){
-                hours = atoi(hours_tab)%12;
+                hours = atoi(hours_tab);
                 minutes = atoi(min_tab);
                 seconds = (3600 * hours) + (60*minutes);// Reset the seconds counter to zero
             }
@@ -57,6 +58,12 @@ void main(void){
                 minutes = atoi(min_tab);
                 seconds = (3600 * hours) + (60*minutes);
                 initDigitalClock();
+            }
+            else if(mode == 2){
+                hours = atoi(hours_tab);
+                minutes = atoi(min_tab);
+                seconds = (3600 * hours) + (60*minutes);
+                updateTimeTab2(hours , minutes);
             }
 
             TCNT1 = 0; // Reset the rpm counter (timer 1)

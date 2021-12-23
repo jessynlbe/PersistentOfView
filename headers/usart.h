@@ -6,20 +6,20 @@
 #include <stdbool.h>
 #include <string.h>
 
-#define SIZE 500
+#define SIZE 125
 
 typedef struct ringBuffer ringBuffer;
 
 struct ringBuffer {
-    int read_pos;
-    int write_pos;
+    uint8_t read_pos;
+    uint8_t write_pos;
     uint8_t buffer[SIZE];
 };
 
 ringBuffer tx_rbuffer;
 ringBuffer rx_rbuffer;
 
-int incrementPos(int pos);
+uint8_t incrementPos(uint8_t pos);
 void buffer_write(ringBuffer *rb, uint8_t c);
 void buffer_string(ringBuffer *rb, uint8_t *str);
 uint8_t buffer_read(ringBuffer *rb);

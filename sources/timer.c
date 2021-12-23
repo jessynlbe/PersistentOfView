@@ -1,26 +1,47 @@
 #include "../headers/timer.h"
 #include "../headers/spi.h"
 #include "../headers/usart.h"
+#include "../headers/bits.h"
+#include "../headers/numbers.h"
 
 #include <math.h>
 #include <stdio.h>
 
-//////////////////// Tab of numbers ///////////////////////////:
-int zero[12] = {15,240,16,8,16,8,16,8,16,8,15,240};
-int one[12] = {4,8,8,8,31,248,31,248,0,8,0,8};
-int two[12] = {4,8,8,24,16,40,16,72,16,136,15,8};
-int three[12] = {16,16,16,8,16,8,19,8,20,136,24,112};
-int four[12] = {1,128,2,128,4,128,8,136,31,248,0,136};
-int five[12] = {31,8,17,8,17,8,17,8,17,8,16,240};
-int six[12] = {1,248,2,136,4,136,8,136,16,136,0,248};
-int seven[12] = {16,0,16,0,16,0,16,0,16,0,31,248};
-int eight[12] = {15,240,17,8,17,8,17,8,17,8,15,240};
-int nine[12] = {30,8,18,8,18,8,18,8,18,8,31,248};
-
-int point[12] = {0,0,0,0,6,96,6,96,0,0,0,0};
-
 /////////////////// All initialisation /////////////////////////
 
+void init_array(){
+    for(int i = 0 ; i < SLOTS*2 ; i++){
+        arr_b[i] = 0;
+    }
+}
+
+void init_temp_array(){
+    for(int i = 0 ; i < SLOTS*2 ; i++){
+        temp_arr_b[i] = 0;
+    }
+}
+
+void update_bits_hour(uint16_t *frst , uint16_t * snd , uint16_t * thrd , uint16_t *frth){
+    fillTab(11 , 4 , 16 , frst); // haut gauche
+    fillTab(11 , 18, 5 , frth); // bas droit
+    
+    fillTab(11 , 18 , 16 , thrd); // bas gauche
+    fillTab(11 , 4 , 5 , snd); // haut droit
+    getLeds(16 , SLOTS , final_b , 32 , temp_arr_b);
+    copy_array(temp_arr_b , arr_b , SLOTS*2);
+}
+
+void init_final(){
+    for(int i = 0 ; i < 32 ; i++){
+        final_b[i] = 0;
+    }
+}
+
+void copy_array(uint8_t *src, uint8_t *dst , int size){
+    for(int i = 0 ; i < SLOTS*2 ; i++){
+        dst[i] = src[i];
+    }
+}
 
 void init_timer(){
     second_compteur = 0;
@@ -33,19 +54,27 @@ void init_timer(){
     stored_min = minutes;
     stored_hour = hours;
 
+    stored_min2 = minutes;
+    stored_hour2 = hours;
+
     seconds = (3600 * (long) hours) + (60* (long) minutes);
 
     mult_minutes = MAX / 60; // Value by which the minutes must be multiplied because of the increased number of columns
     mod_five_minutes = 5 * mult_minutes; // Modulo to obtain the 5min intervals
     mod_fifteen_minutes = 15 * mult_minutes; // Modulo to obtain the 15min intervals
 
+    nb_seconds = 0;
+
     init_timer1();
     init_timer2();
 
     mode = 0;
+
     time_tab[2] = point;
     updateTimeTab(hours , 0 , time_tab);
     updateTimeTab(minutes , 3 , time_tab);
+
+    updateTimeTab2(hours , minutes);
 }
 
 void init_timer1(){
@@ -95,7 +124,7 @@ void initDigitalClock(){
 
 //////////////////// Digital Clock /////////////////
 
-void displayMsg(int start , int size , int column , int nbTab , int sizeSep , int nbSections ,volatile int **tab){
+void displayMsg(int start , int size , int column , int nbTab , int sizeSep , int nbSections ,volatile uint8_t **tab){
     int sizeBeforeZero = MAX - start; // Combien de colonnes avant de devoir repasser à zero
     int end =  size - sizeBeforeZero -1; // Nombre de colonnes qui depasse zero (end est alors la valeur de la derniere colonne du message)
     int sizeSections = SIZETAB + (sizeSep); // Taille d'une section contenant un tab et un sep
@@ -131,7 +160,7 @@ void displayMsg(int start , int size , int column , int nbTab , int sizeSep , in
 
 }
 
-int* linkTabAndNumber(int val){
+uint8_t* linkTabAndNumber(int val){
     
     switch(val){
         case 0:
@@ -170,7 +199,7 @@ void updateTime(){
     }
 }
 
-void updateTimeTab(int val , int pos ,volatile int **tab){
+void updateTimeTab(int val , int pos ,volatile uint8_t **tab){
     int first = val / 10;
     int snd = val%10;
 
@@ -178,6 +207,64 @@ void updateTimeTab(int val , int pos ,volatile int **tab){
     tab[pos+1] = linkTabAndNumber(snd);
 }
 
+
+/////////////////// Digital Clock without distortion //////////////////
+
+void updateTime2(){
+    if( (getMin()) != stored_min2){
+        updateTimeTab2(getHour() , getMin());
+        stored_min2 = getMin();
+    }
+
+    if( (getHour()) != stored_hour2){
+        updateTimeTab2(getHour(), getMin());
+        stored_hour2 = getHour();
+    }
+}
+
+uint16_t* chooseTab(int val){
+    switch(val){
+        case 0:
+            return zero_b;
+        case 1:
+            return one_b;
+        case 2:
+            return two_b;
+        case 3:
+            return three_b;
+        case 4:
+            return four_b;
+        case 5:
+            return five_b;
+        case 6:
+            return six_b;
+        case 7:
+            return seven_b;
+        case 8:
+            return eight_b;
+        case 9:
+            return nine_b;
+    }
+}
+
+void updateTimeTab2(int hour_val , int min_val){
+    int firstH = hour_val / 10;
+    int sndH = hour_val%10;
+
+    int firstM = min_val/10;
+    int sndM = min_val%10;
+
+    init_final();
+    init_temp_array();
+
+
+    update_bits_hour(
+        chooseTab(firstH),
+        chooseTab(sndH),
+        chooseTab(firstM),
+        chooseTab(sndM)
+     );
+}
 
 ////////////////////// Additional functions //////////////////////////
 
@@ -217,9 +304,7 @@ void update(){
     float cycle_us = (cycle * 1000000); // 4,923
 
     float overflow = (tpc*1000000) / cycle_us; //169.0 : 60 -- 84 : 120
-    if((int) overflow != 0){
-        OCR1A = (int) overflow;
-    }
+    OCR1A = (int) overflow+1;
 }
 
 
@@ -227,7 +312,7 @@ void update(){
 
 ISR(TIMER2_COMPA_vect){
     if(second_compteur++ > 1625){
-
+        
         second_compteur = 0;
 
         if(seconds >= 86399){
@@ -242,7 +327,13 @@ ISR(TIMER2_COMPA_vect){
         rpm = ticks * 60;
         ticks = 0;
 
-        update();
+        if(nb_seconds >= 2){
+            update();
+            nb_seconds=0;
+        }
+        else{
+            nb_seconds++;
+        }
     }
 }
 
@@ -252,12 +343,12 @@ ISR(TIMER1_COMPA_vect){
         int min = getMin();
         int hour = getHour();
 
-        if(hour > 12){
+        if(hour >= 12){
             hour = hour % 12;
         }
 
         if(column == min * mult_minutes){
-            spi_transmit( (uint8_t) 239 , (uint8_t) 255 );
+            spi_transmit( (uint8_t) 199 , (uint8_t) 255 );
         }
         else if(column == hour * mod_five_minutes){
             spi_transmit( (uint8_t) 160 , (uint8_t) 255 );
@@ -282,7 +373,12 @@ ISR(TIMER1_COMPA_vect){
         updateTime();
         displayMsg(MAX-30 , size , column , nbTab , sizeSep , nbSections , time_tab);
     }
-    
+    else if(mode == 2){
+        int start = column * 2;
+        spi_transmit( arr_b[start+1] ,  arr_b[start] );
+        updateTime2();
+        
+    }
     increment_column();
 }
 

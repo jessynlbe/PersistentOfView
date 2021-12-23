@@ -6,7 +6,7 @@
 
 ///////////////////////// Ring Buffer ////////////////////////
 
-int incrementPos(int pos){
+uint8_t incrementPos(uint8_t pos){
     if(pos >= SIZE){
         return 0;
     }
@@ -21,7 +21,7 @@ void buffer_write(ringBuffer *rb, uint8_t c)
 
 void buffer_string(ringBuffer *rb, uint8_t *str)
 {
-    for(int i = 0 ; str[i] != '\0' ; i++){
+    for(uint8_t i = 0 ; str[i] != '\0' ; i++){
         buffer_write(rb,str[i]);
     }
 }
@@ -94,9 +94,9 @@ uint8_t usart_read(){
 void usart_read_buffer(ringBuffer *rb){
     usart_send_string("\nStart reading buffer :\n");
     _delay_ms(10);
-    int max = rb->write_pos ;
-    int idx = 0;
-    int val = 1;
+    uint8_t max = rb->write_pos ;
+    uint8_t idx = 0;
+    uint8_t val = 1;
     while(idx < max){
         uint8_t value = rb->buffer[idx];
         usart_send_byte(value);
