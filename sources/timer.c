@@ -21,6 +21,11 @@ void init_temp_array(){
     }
 }
 
+// Recalculates the value of each led for each column
+// frst : Dizaine of the hour
+// snd : Decimal of hours
+// thrd : Dizaine of min
+// frth : Decimal of min
 void update_bits_hour(uint16_t *frst , uint16_t * snd , uint16_t * thrd , uint16_t *frth){
     fillTab(11 , 4 , 16 , frst); // haut gauche
     fillTab(11 , 18, 5 , frth); // bas droit
@@ -124,21 +129,29 @@ void initDigitalClock(){
 
 //////////////////// Digital Clock /////////////////
 
+// Allows you to set the hours and minutes on the clock
+// start : start column for time display
+// size : Size of time display
+// column : Column to be displayed
+// nbTab : Number of tabs int the time display ( 5 --> 23:56)
+// sizeSep : Size of the separator between each number
+// nbSections : Number of sections ( one section = one separator and one number)
+// tab : Table in which to find the values of the leds
 void displayMsg(int start , int size , int column , int nbTab , int sizeSep , int nbSections ,volatile uint8_t **tab){
     int sizeBeforeZero = MAX - start; // Combien de colonnes avant de devoir repasser à zero
-    int end =  size - sizeBeforeZero -1; // Nombre de colonnes qui depasse zero (end est alors la valeur de la derniere colonne du message)
+    int end =  size - sizeBeforeZero -1; // Nombre de colonnes qui depassent zero (end est alors la valeur de la derniere colonne du message)
     int sizeSections = SIZETAB + (sizeSep); // Taille d'une section contenant un tab et un sep
 
     int diff = 0;
-    if(column <= end){ // Si colonne est inferieur a end alors on doit convertir pour pouvoir faire la difference
-        int value = MAX + column; // Exemple si colonne = 1 et MAX = 180 , vlaue = 181 donc on peut savoir la diff 181 - start;
+    if(column <= end){ // Si column est inferieure a end alors on doit convertir pour pouvoir faire la difference
+        int value = MAX + column; // Exemple : si column = 1 et MAX = 180, value = 181 donc on peut déterminer la différence 181 - start;
         diff = value - start;
     }
-    else if(column >= start && column < MAX){ // Si colonne est entre le start et le MAX (savoir si on doit convertir la colonne)
+    else if(column >= start && column < MAX){ // Si column est entre le start et le MAX (pour savoir si on doit convertir la colonne)
         diff = column - start;
     }
     else{
-        spi_transmit( (uint8_t) 128 , (uint8_t) 1 ); // Si on est dans aucun de ses cas cest qu'on est en dehors de la zzero du message donc 0 partout
+        spi_transmit( (uint8_t) 128 , (uint8_t) 1 ); // Si on est dans aucun de ses cas c'est qu'on est en dehors de la zeero du message donc 0 partout
         return;
     }
 
@@ -147,8 +160,8 @@ void displayMsg(int start , int size , int column , int nbTab , int sizeSep , in
         return;
     }
 
-    int idxSection = diff / sizeSections; // L'index de la section ou se trouve la colonne
-    int offsetSection = diff % sizeSections; // Le décalage dans la section ou se trouve la colonne
+    int idxSection = diff / sizeSections; // L'index de la section où se trouve la colonne
+    int offsetSection = diff % sizeSections; // Le décalage dans la section où se trouve la colonne
 
     if(offsetSection >= SIZETAB){
         spi_transmit( (uint8_t) 128 , (uint8_t) 1 ); 
@@ -187,6 +200,7 @@ uint8_t* linkTabAndNumber(int val){
     
 }
 
+// Update the clock every minute / hour. To recalculate only when necessary
 void updateTime(){
     if( (getMin()) != stored_min){
         updateTimeTab(getMin() , 3 , time_tab);
@@ -199,6 +213,10 @@ void updateTime(){
     }
 }
 
+// Allows to update the array which contains the values of the leds to light
+// val : Value to be displayed
+// pos : Position in the table of numbers
+// tab : Table of tables
 void updateTimeTab(int val , int pos ,volatile uint8_t **tab){
     int first = val / 10;
     int snd = val%10;
@@ -210,6 +228,7 @@ void updateTimeTab(int val , int pos ,volatile uint8_t **tab){
 
 /////////////////// Digital Clock without distortion //////////////////
 
+// Update the clock every minute / hour. To recalculate only when necessary
 void updateTime2(){
     if( (getMin()) != stored_min2){
         updateTimeTab2(getHour() , getMin());
@@ -247,16 +266,18 @@ uint16_t* chooseTab(int val){
     }
 }
 
+// Allows to update the array which contains the values of the leds to light
 void updateTimeTab2(int hour_val , int min_val){
+    // Recovery of each digit composing the hours and minutes
     int firstH = hour_val / 10;
     int sndH = hour_val%10;
 
     int firstM = min_val/10;
     int sndM = min_val%10;
 
+    // Cleaning of the table containing the "drawing" of the numbers
     init_final();
     init_temp_array();
-
 
     update_bits_hour(
         chooseTab(firstH),
@@ -277,12 +298,14 @@ void increment_column(){
     }
 }
 
+// Conversion of seconds to minutes
 long getMin(){
     long value =  seconds - (3600* getHour());
     long ret = (long) value / 60;
     return ret;
 }
 
+// Conversion of seconds to hours
 long getHour(){
     long value = (long) seconds / 3600;
     return value;
@@ -315,6 +338,7 @@ ISR(TIMER2_COMPA_vect){
         
         second_compteur = 0;
 
+        // Resets all variables to zero when 23h59m59s is reached.
         if(seconds >= 86399){
             seconds = 0;
             minutes = 0;
@@ -324,6 +348,8 @@ ISR(TIMER2_COMPA_vect){
             seconds++;
         }
 
+       // RPM update every second.
+       // Calculation of the number of ticks ( 1 at each passage in front of the sensor) in 1 min ( x 60 ) 
         rpm = ticks * 60;
         ticks = 0;
 
@@ -343,20 +369,21 @@ ISR(TIMER1_COMPA_vect){
         int min = getMin();
         int hour = getHour();
 
+        // Clock 1, if we exceed 12h then we convert the hours on 12h rather than 24
         if(hour >= 12){
             hour = hour % 12;
         }
 
-        if(column == min * mult_minutes){
+        if(column == min * mult_minutes){ // Needle min
             spi_transmit( (uint8_t) 199 , (uint8_t) 255 );
         }
-        else if(column == hour * mod_five_minutes){
+        else if(column == hour * mod_five_minutes){ // Needle hour
             spi_transmit( (uint8_t) 160 , (uint8_t) 255 );
         }
-        else if(column % mod_fifteen_minutes == 0){
+        else if(column % mod_fifteen_minutes == 0){ // Drawing of 15min intervals
             spi_transmit( (uint8_t) 176 , (uint8_t) 1 );
         }
-        else if(column % mod_five_minutes == 0){
+        else if(column % mod_five_minutes == 0){ // Drawing of 5min intervals
             spi_transmit( (uint8_t) 160 , (uint8_t) 1 );
         }
         else{
@@ -365,9 +392,13 @@ ISR(TIMER1_COMPA_vect){
     }
     else if(mode == 1){
         int mult = MAX/60;
+        // Number of tab to display : Ex - 12:43 so 5
         int nbTab = 5;
+        // Size between each tab
         int sizeSep = (mult*2);
+        // Number of separators
         int nbSections = nbTab-1;
+        // Global size of tab containing hours , min and double dot
         int size = (nbTab * SIZETAB) + (nbSections*sizeSep);
 
         updateTime();

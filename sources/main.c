@@ -27,6 +27,7 @@ void main(void){
     usart_send_string("r : Read rx_buffer\n");
     usart_send_string("t : Read rx_buffer\n");
     usart_send_string("h : Write the time in the form hh:mm validate then enter h\n");
+    usart_send_string("m : Write the mode of the form x validate and then enter m\n");
     _delay_ms(10);
     while (1){
         char char_received = usart_read();

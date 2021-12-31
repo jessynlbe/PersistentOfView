@@ -1,60 +1,17 @@
-# Timers :
+## Explications des parties les plus importantes :
 
-- **timer0** : 8bits ==> 0 à 255
-- **timer1** : 16bits ==> 0 à 65535
-- **timer2** : 8bits ==> 0 à 255
+- **Les timers** : 
+  - Le timer 2 est utilisé pour calculer chaque seconde. Pour réaliser ceci on utilise un prescaler de 64 (on a donc une frequence de 203125Hz et un cycle d'horloge de 4,9 microsecondes). Puisque l'on veut savoir quand il s'est écoulé 1 seconde (donc 1000 millisecondes soit 1000000 de microsecondes), on sait alors qu'on doit compter `1 000 000 / 4,9 = 204081` fois. 
+  De plus `204081 = 125 * 1625`. Etant donné que le timer 2 est surchargé (overflow) de base tous les 255, on utilise ici une comparaison pour le faire "overflow" tous les 125 ; et lorsqu'il overflow on incremente une variable qui nous informera qu'une seconde s'est écoulée lorsqu'elle aura atteint la valeur de 1625.
+  
+  - Le timer 1 est utilisé pour changer la valeur de chaque led à intervalle régulier et ainsi donner cette impression de persistence visuelle. Il est utilisé avec un prescaler de 64 comme pour le timer 2 et une interruption de comparaison. 
+  Pour décider du moment de l'interruption on calcule les RPM de l'horloge, dont on se sert pour déterminer le temps d'une seule rotation. Avec ce temps là on peut déduire le temps qu'il faut pour pouvoir afficher 1 fois chaque colonne du cercle de l'horloge (temps par rotation / nb de colonnes). Ensuite, connaissant ce temps par colonne, on peut utiliser la même méthode que pour le timer 2 pour savoir quand ce temps là est écoulé et déclencher alors une interruption.
 
-# Timer 2 :
+Pour les 3 horloges l'affichage est découpé en plusieurs colonnes dans lesquelles les leds sont allumées ou éteintes pour former l'horloge. La fonction increment_column incremente la variable "column" à chaque interruption du timer 1.
 
-**Attention ce qui suit est valable pour le timer2. Les autres fonctionnent relativement pareil mais diffère sur certains points. Il faut vérifier la doc pour les autres**
+- **Horloge 1** : La première horloge est très basique : comme expliqué au-dessus, l'affichage est découpé en colonnes. A chaque fois que l'interruption du timer 1 est appelée, on modifie les leds selon la valeur de la colonne actuelle. Les leds sont modifiées selon si on est sur la colonne des minutes (minute actuelle), des heures, d'un intervalle de 5 min ou de 15 min, ou du reste (les minutes entres les intervalles de 5).
 
-### Bases :
+- **Horloge 2** : Pour la deuxième horloge des tableaux contenant le "dessin" de chaque chiffre ont été créés. Ces tableaux contiennent les valeurs décimales représentant la forme binaire de chaque colonne du dessin du chiffre. Afin de modifier les leds il faut envoyer 2 valeurs décimales (1 valeur pour 8 leds), donc les tableaux contiennent 2 valeurs par colonne du "dessin" (la premiere valeur de chaque paire est la partie haute des leds de 8 a 15 et la deuxieme la premiere partie de 0 a 7). Pour afficher une heure il ne reste plus qu'a afficher les tableaux correspondant à l'heure qu'il est. Pour ce faire nous avons une fonction displayMsg() qui prend en paramètre un tableau de 5 tableaux (les 4 chiffres que l'on veut afficher et les 2 points entre les heures et les minutes) et la colonne à laquelle on souhaite commencer l'affichage. La fonction se charge de faire les placements de chaque partie des chiffres avec chaque colonne.
 
-**Compteur** : TCNT2
-
-**Prescaler:** voir doc pour valeur des CS2x
-- CS20(0) de TCCR2B
-- CS21(1) de TCCR2B
-- CS22(2) de TCCR2B
-
-**Overflow :** ***TOV2***(0) à 1 de ***TIFR2*** 
-
-**Mode normal Timer :**
-- WGM20(0) = 0 de TCCR2A
-- WGM21(1) = 0 de TCCR2A
-- WGM22(3) = 0 de TCCR2B
-
-**Réinitialiser TOV2** = 1 pas 0
-
-### Interruptions:
-
-**Autoriser interruption timer:**
-***TOIE2***(0) à 1 de ***TIMSK2***
-
-**Interruption déclenché quand:**
-***TOEI2*** = 1 et ***TOV2*** = 1 (overflow)
-
-**Autorisé interruption générale:** sei()
-
-**Interruption Overflow:** ***ISR(TIMER2_OVF_vect)*** :
-Le flag ***TOV2*** est remis à 0 tout seul
-
-### Comparaisons et interruptions
-
-**OCR** (Output Compare Register) => 2 par timer ***OCRxA***, ***OCRxB***
-
-**Comparer timer:**
-Lorsque le timer est égale à la valeur donnée dans ***OCR2A***, ***OCF2A***(1) est mis à 1
-dans ***TIFR2***. Si interruption active alors
-***ISR(TIMER2_COMP1_vect*** sera déclénché.
-
-**Autorisé interruption comparaison:**
-***OCIE2A***(1) à 1 de ***TIMSK2***
-
-**Mode CTC:** Timer remis à 0 quand ***OCR2A*** = Timer.
-
-**Activer Mode CTC:**
-- ***WGM20***(0) = 0 de ***TCCR2A***
-- ***WGM21***(1) = 1 de ***TCCR2A***
-- ***WGM22***(3) = 0 de ***TCCR2B***
-
+- **Horloge 3** : Pour la troisième horloge , le principe est un peu le même que la 2eme à la différence près que les tableaux utilisés pour dessiner les chiffres ici sont directement sous forme binaire (plus representative de la forme qui doit être affichée). On utilise en plus de ces tableaux un grand tableaux de 32 x 32 qui va contenir le dessin de tous les chiffres qui composent l'heure actuelle. Pour afficher l'heure sans distorsion on va réaliser une conversion polaire vers cartesienne pour chaque colonne de l'horloge et chaque led. Cette conversion va nous permettre de récupérer dans le grand tableau la valeur à affecter à une led spécifique. 
+Ainsi, il ne restera plus qu'a allumer ou éteindre la led selon cette valeur. Pour faciliter les calculs, toutes les conversions sont décalées de la moitié de la taille du grand tableau pour placer toutes les valeurs en positif, et une fonction de conversion de coordonnées cartesiennes vers les coordonnées d'un tableau est aussi utilisée pour faire la correspondance entre les deux.

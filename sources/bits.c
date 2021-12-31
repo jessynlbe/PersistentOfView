@@ -6,7 +6,10 @@ int getBits(unsigned long pos , unsigned long number){
 }
 
 
-
+// This function allows you to place the "drawings" of the numbers
+// in a 32x32 table (size of the clock) at the desired positions. 
+// startBits : Bit with which we start to copy the table
+// offH / offW : Shift in width and height of the table to be included in the final table
 void fillTab(int startBits , int offH , int offW ,const uint16_t tab[11]){
     int idxH = offH;
     int idxW = offW;
@@ -26,6 +29,11 @@ void fillTab(int startBits , int offH , int offW ,const uint16_t tab[11]){
 
 }
 
+// Polar to cartesian conversion
+// rad : radius of the circle
+// angle : angle of the circle
+// size : size of tab In which we want to get the value
+// value : Value allowing to decide if we want to recover the x or the y
 int convertPolarToCartesian(int rad , int angle , int size , int value){
     float theta = (float) angle * (M_PI / 180.0);
     int x = (int) floorf(rad * sinf(theta));
@@ -38,6 +46,11 @@ int convertPolarToCartesian(int rad , int angle , int size , int value){
     }
 }
 
+// Convert map coordinates to coordinates for an array
+// x : Card position x
+// y : Card position y
+// size : Tab size
+// value : Value allowing to decide if we want to recover the x or the y
 int convertCartToArr(int x , int y , int size , int value){
     if(value == 0){
         return x;
@@ -51,6 +64,13 @@ int getBitsTab(uint32_t *tab , int x , int y){
     return getBits(32-x-1 , tab[y]);
 }
 
+
+// Calculates the values of the leds for each column of the display with a polar to cartesian conversion
+// nbLeds : number of leds / polar circle radius
+// nbSlots : Number of columns that cut the clock
+// tab : Table containing the time display to be converted to remove distortion
+// size : Table size tab
+// arr : Table in which we write the values of each led for each column
 void getLeds(int nbLeds , int nbSlots , uint32_t *tab , int size , uint8_t *arr){
     int rows = nbSlots;
     int cols = nbLeds;
