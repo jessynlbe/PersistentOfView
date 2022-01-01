@@ -54,8 +54,8 @@ void init_timer(){
     rpm = 0;
     column = 0;
 
-    minutes = 15;
-    hours = 6;
+    minutes = 10;
+    hours = 12;
     stored_min = minutes;
     stored_hour = hours;
 
@@ -374,7 +374,10 @@ ISR(TIMER1_COMPA_vect){
             hour = hour % 12;
         }
 
-        if(column == min * mult_minutes){ // Needle min
+        if(column == (min*mult_minutes) && column % mod_five_minutes == 0){
+            spi_transmit( (uint8_t) 231 , (uint8_t) 255 );
+        }
+        else if(column == min * mult_minutes){ // Needle min
             spi_transmit( (uint8_t) 199 , (uint8_t) 255 );
         }
         else if(column == hour * mod_five_minutes){ // Needle hour

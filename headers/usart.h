@@ -6,7 +6,7 @@
 #include <stdbool.h>
 #include <string.h>
 
-#define SIZE 125
+#define SIZE 225
 
 typedef struct ringBuffer ringBuffer;
 
