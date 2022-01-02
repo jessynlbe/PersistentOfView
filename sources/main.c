@@ -19,8 +19,8 @@
 void main(void){
     init_magnetic();
     init_usart();
-    init_timer();
     init_spi();
+    init_timer();
     sei();
 
     usart_send_string("Start clock\n");

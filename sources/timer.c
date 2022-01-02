@@ -54,8 +54,8 @@ void init_timer(){
     rpm = 0;
     column = 0;
 
-    minutes = 10;
-    hours = 12;
+    minutes = 26;
+    hours = 8;
     stored_min = minutes;
     stored_hour = hours;
 
@@ -80,6 +80,7 @@ void init_timer(){
     updateTimeTab(minutes , 3 , time_tab);
 
     updateTimeTab2(hours , minutes);
+
 }
 
 void init_timer1(){
@@ -353,13 +354,7 @@ ISR(TIMER2_COMPA_vect){
         rpm = ticks * 60;
         ticks = 0;
 
-        if(nb_seconds >= 2){
-            update();
-            nb_seconds=0;
-        }
-        else{
-            nb_seconds++;
-        }
+        update();
     }
 }
 
@@ -423,4 +418,41 @@ void display(long val){
     sprintf(datas , "%ld" , val);
     usart_send_string(datas);
     usart_send_byte('\n');
+}
+
+
+/////////////////// Calculate number cycles //////////////////:
+
+long val = 0;
+
+void init_timer0(){
+    sei();
+     // All bits of TCCR = 0
+    TCCR0A = 0;
+    TCCR0B = 0;
+
+    TCCR0B |= _BV(CS00);
+    TCCR0B |= _BV(CS01);
+
+    // Enable interrupt comparaison
+    TIMSK0 |= _BV(TOIE0);
+
+}
+
+ISR(TIMER0_OVF_vect){
+    val++;
+}
+
+void stop_timer(){
+    cli();
+    long v = val * (long) 255 + (long) TCNT0;
+    display(v);
+    TCCR0B &= ~_BV(CS00);
+    sei();
+}
+
+void calculate(){
+    init_timer0();
+    // fonction to calculate
+    stop_timer();
 }
