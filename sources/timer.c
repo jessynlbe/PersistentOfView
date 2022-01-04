@@ -115,7 +115,7 @@ void init_timer2(){
     // Enable interrupt comparaison
     TIMSK2 |= _BV(OCIE2A);
 
-    // Value to compare : 125 * 1625 = 204081 (Number of times he must count to make 1s)
+    // Value to compare : 125 * 1625 = 203128 (Number of times he must count to make 1s)
     //Timer must overflow 125x , at each overflow second_counter is incremented.
     //Once it reaches 1625, 1s has elapsed.
     OCR2A = 125;
@@ -405,8 +405,6 @@ ISR(TIMER1_COMPA_vect){
     else if(mode == 2){
         int start = column * 2;
         spi_transmit( arr_b[start+1] ,  arr_b[start] );
-        updateTime2();
-        
     }
     increment_column();
 }
@@ -434,7 +432,6 @@ void init_timer0(){
     TCCR0B |= _BV(CS00);
     TCCR0B |= _BV(CS01);
 
-    // Enable interrupt comparaison
     TIMSK0 |= _BV(TOIE0);
 
 }

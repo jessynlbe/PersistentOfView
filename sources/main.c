@@ -75,6 +75,8 @@ void main(void){
             mode = atoi(m);
 
         }
+
+        updateTime2();
     }
 
 }

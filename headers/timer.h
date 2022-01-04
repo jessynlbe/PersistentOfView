@@ -53,3 +53,7 @@ uint16_t* chooseTab(int val);
 void updateTimeTab2(int hour_val , int min_val);
 void updateTime2();
 void init_temp_array();
+
+void init_timer0();
+void stop_timer();
+void calculate();

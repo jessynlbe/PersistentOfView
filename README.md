@@ -1,8 +1,8 @@
 ## Explications des parties les plus importantes :
 
 - **Les timers** : 
-  - Le timer 2 est utilisé pour calculer chaque seconde. Pour réaliser ceci on utilise un prescaler de 64 (on a donc une frequence de 203125Hz et un cycle d'horloge de 4,9 microsecondes). Puisque l'on veut savoir quand il s'est écoulé 1 seconde (donc 1000 millisecondes soit 1000000 de microsecondes), on sait alors qu'on doit compter `1 000 000 / 4,9 = 204081` fois. 
-  De plus `204081 = 125 * 1625`. Etant donné que le timer 2 est surchargé (overflow) de base tous les 255, on utilise ici une comparaison pour le faire "overflow" tous les 125 ; et lorsqu'il overflow on incremente une variable qui nous informera qu'une seconde s'est écoulée lorsqu'elle aura atteint la valeur de 1625.
+  - Le timer 2 est utilisé pour calculer chaque seconde. Pour réaliser ceci on utilise un prescaler de 64 (on a donc une frequence de 203125Hz et un cycle d'horloge de 4,9 microsecondes). Puisque l'on veut savoir quand il s'est écoulé 1 seconde (donc 1000 millisecondes soit 1000000 de microsecondes), on sait alors qu'on doit compter `1 000 000 / 4,9230 = 203128` fois. 
+  De plus `203128 = 125 * 1625`. Etant donné que le timer 2 est surchargé (overflow) de base tous les 255, on utilise ici une comparaison pour le faire "overflow" tous les 125 ; et lorsqu'il overflow on incremente une variable qui nous informera qu'une seconde s'est écoulée lorsqu'elle aura atteint la valeur de 1625.
   
   - Le timer 1 est utilisé pour changer la valeur de chaque led à intervalle régulier et ainsi donner cette impression de persistence visuelle. Il est utilisé avec un prescaler de 64 comme pour le timer 2 et une interruption de comparaison. 
   Pour décider du moment de l'interruption on calcule les RPM de l'horloge, dont on se sert pour déterminer le temps d'une seule rotation. Avec ce temps là on peut déduire le temps qu'il faut pour pouvoir afficher 1 fois chaque colonne du cercle de l'horloge (temps par rotation / nb de colonnes). Ensuite, connaissant ce temps par colonne, on peut utiliser la même méthode que pour le timer 2 pour savoir quand ce temps là est écoulé et déclencher alors une interruption.
