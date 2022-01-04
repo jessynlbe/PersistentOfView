@@ -399,7 +399,6 @@ ISR(TIMER1_COMPA_vect){
         // Global size of tab containing hours , min and double dot
         int size = (nbTab * SIZETAB) + (nbSections*sizeSep);
 
-        updateTime();
         displayMsg(MAX-30 , size , column , nbTab , sizeSep , nbSections , time_tab);
     }
     else if(mode == 2){

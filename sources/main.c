@@ -76,6 +76,8 @@ void main(void){
 
         }
 
+        updateTime();
+
         updateTime2();
     }
 
